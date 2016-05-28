@@ -1,0 +1,2 @@
+# jquery.fancybox
+Модальные окна
