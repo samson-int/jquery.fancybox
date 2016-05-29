@@ -1,21 +1,36 @@
 /*
- * FancyBox - jQuery Plugin
- * Simple and fancy lightbox alternative
- *
- * Examples and documentation at: http://fancybox.net
- *
  * Copyright (c) 2008 - 2010 Janis Skarnelis
- * That said, it is hardly a one-person project. Many people have submitted bugs, code, and offered their advice freely. Their support is greatly appreciated.
+ * Updated by Sergei Vasilev (https://github.com/Ser-Gen)
  *
- * Version: 1.3.4 (11/11/2010)
- * Requires: jQuery v1.3+
+ * Version: 1.4.0
  *
  * Dual licensed under the MIT and GPL licenses:
- *   http://www.opensource.org/licenses/mit-license.php
- *   http://www.gnu.org/licenses/gpl.html
+ *	 http://www.opensource.org/licenses/mit-license.php
+ *	 http://www.gnu.org/licenses/gpl.html
  */
 
 ;(function($) {
+
+	var actionEventUp;
+
+	// http://msdn.microsoft.com/ru-ru/library/ie/dn304886%28v=vs.85%29.aspx
+	if ( navigator.pointerEnabled ) {
+		actionEventUp = 'pointerup';
+	}
+	
+	// http://msdn.microsoft.com/en-US/library/ie/hh673557.aspx
+	else if ( window.navigator.msPointerEnabled ) {
+		actionEventUp = 'MSPointerUp';
+	}
+
+	// https://developer.mozilla.org/en-US/docs/DOM/Touch_events
+	else if ( 'ontouchstart' in window ) {
+		actionEventUp = 'touchend';
+	}
+	else {
+		actionEventUp = 'click';
+	}
+
 	var tmp, loading, overlay, wrap, outer, content, close, title, nav_left, nav_right,
 
 		selectedIndex = 0, selectedOpts = {}, selectedArray = [], currentIndex = 0, currentOpts = {}, currentArray = [],
@@ -25,8 +40,6 @@
 		loadingTimer, loadingFrame = 1,
 
 		titleHeight = 0, titleStr = '', start_pos, final_pos, busy = false, fx = $.extend($('<div/>')[0], { prop: 0 }),
-
-		isIE6 = $.browser.msie && $.browser.version < 7 && !window.XMLHttpRequest,
 
 		/*
 		 * Private methods 
@@ -188,7 +201,7 @@
 							$(this).replaceWith(tmp.children());
 						});
 
-					$(obj).appendTo(tmp);
+					tmp.append($(obj).clone(true));
 
 					_process_inline();
 				break;
@@ -332,7 +345,7 @@
 
 			$(content.add( overlay )).unbind();
 
-			$(window).unbind("resize.fb scroll.fb");
+			$(window).unbind("resize.fb scroll.fb orientationchange.fb");
 			$(document).unbind('keydown.fb');
 
 			if (wrap.is(":visible") && currentOpts.titlePosition !== 'outside') {
@@ -352,14 +365,6 @@
 				});
 
 				if (!overlay.is(':visible')) {
-					if (isIE6) {
-						$('select:not(#fancybox-tmp select)').filter(function() {
-							return this.style.visibility !== 'hidden';
-						}).css({'visibility' : 'hidden'}).one('fancybox-cleanup', function() {
-							this.style.visibility = 'inherit';
-						});
-					}
-
 					overlay.show();
 				}
 			} else {
@@ -393,7 +398,6 @@
 
 					content
 						.empty()
-						.removeAttr('filter')
 						.css({
 							'border-width' : currentOpts.padding,
 							'width'	: final_pos.width - currentOpts.padding * 2,
@@ -576,11 +580,6 @@
 		},
 
 		_finish = function () {
-			if (!$.support.opacity) {
-				content.get(0).style.removeAttribute('filter');
-				wrap.get(0).style.removeAttribute('filter');
-			}
-
 			if (selectedOpts.autoDimensions) {
 				content.css('height', 'auto');
 			}
@@ -598,21 +597,26 @@
 			_set_navigation();
 	
 			if (currentOpts.hideOnContentClick)	{
-				content.bind('click', $.fancybox.close);
+				content.bind(actionEventUp, $.fancybox.close);
 			}
 
 			if (currentOpts.hideOnOverlayClick)	{
-				overlay.bind('click', $.fancybox.close);
+				overlay.bind(actionEventUp, $.fancybox.close);
 			}
 
-			$(window).bind("resize.fb", $.fancybox.resize);
+			if (actionEventUp == 'click') {
+				$(window).bind("resize.fb", $.fancybox.resize);
+			}
+			else {
+				$(window).bind("orientationchange.fb", $.fancybox.resize);
+			};
 
 			if (currentOpts.centerOnScroll) {
 				$(window).bind("scroll.fb", $.fancybox.center);
 			}
 
 			if (currentOpts.type == 'iframe') {
-				$('<iframe id="fancybox-frame" name="fancybox-frame' + new Date().getTime() + '" frameborder="0" hspace="0" ' + ($.browser.msie ? 'allowtransparency="true""' : '') + ' scrolling="' + selectedOpts.scrolling + '" src="' + currentOpts.href + '"></iframe>').appendTo(content);
+				$('<iframe id="fancybox-frame" name="fancybox-frame' + new Date().getTime() + '" frameborder="0" hspace="0" ' + (window.navigator.userAgent.indexOf("MSIE") >= 0 ? 'allowtransparency="true""' : '') + ' scrolling="' + selectedOpts.scrolling + '" src="' + currentOpts.href + '"></iframe>').appendTo(content);
 			}
 
 			wrap.show();
@@ -620,6 +624,8 @@
 			busy = false;
 
 			$.fancybox.center();
+
+			overlay.css('height', $(document).height());
 
 			currentOpts.onComplete(currentArray, currentIndex, currentOpts);
 
@@ -791,8 +797,8 @@
 
 		$(this)
 			.data('fancybox', $.extend({}, options, ($.metadata ? $(this).metadata() : {})))
-			.unbind('click.fb')
-			.bind('click.fb', function(e) {
+			.unbind(actionEventUp +'.fb')
+			.bind(actionEventUp +'.fb', function(e) {
 				e.preventDefault();
 
 				if (busy) {
@@ -940,10 +946,10 @@
 
 		$(content.add( overlay )).unbind();
 
-		$(window).unbind("resize.fb scroll.fb");
+		$(window).unbind("resize.fb scroll.fb orientationchange.fb");
 		$(document).unbind('keydown.fb');
 
-		content.find('iframe').attr('src', isIE6 && /^https/i.test(window.location.href || '') ? 'javascript:void(false)' : 'about:blank');
+		content.find('iframe').attr('src', /^https/i.test(window.location.href || '') ? 'javascript:void(false)' : 'about:blank');
 
 		if (currentOpts.titlePosition !== 'inside') {
 			title.empty();
@@ -1005,9 +1011,7 @@
 	$.fancybox.resize = function() {
 		if (overlay.is(':visible')) {
 			overlay.css('height', $(document).height());
-		}
-
-		$.fancybox.center(true);
+		};
 	};
 
 	$.fancybox.center = function() {
@@ -1045,7 +1049,6 @@
 		);
 
 		outer = $('<div id="fancybox-outer"></div>')
-			.append('<div class="fancybox-bg" id="fancybox-bg-n"></div><div class="fancybox-bg" id="fancybox-bg-ne"></div><div class="fancybox-bg" id="fancybox-bg-e"></div><div class="fancybox-bg" id="fancybox-bg-se"></div><div class="fancybox-bg" id="fancybox-bg-s"></div><div class="fancybox-bg" id="fancybox-bg-sw"></div><div class="fancybox-bg" id="fancybox-bg-w"></div><div class="fancybox-bg" id="fancybox-bg-nw"></div>')
 			.appendTo( wrap );
 
 		outer.append(
@@ -1057,15 +1060,15 @@
 			nav_right = $('<a href="javascript:;" id="fancybox-right"><span class="fancy-ico" id="fancybox-right-ico"></span></a>')
 		);
 
-		close.click($.fancybox.close);
-		loading.click($.fancybox.cancel);
+		close.bind(actionEventUp, $.fancybox.close);
+		loading.bind(actionEventUp, $.fancybox.cancel);
 
-		nav_left.click(function(e) {
+		nav_left.bind(actionEventUp, function(e) {
 			e.preventDefault();
 			$.fancybox.prev();
 		});
 
-		nav_right.click(function(e) {
+		nav_right.bind(actionEventUp, function(e) {
 			e.preventDefault();
 			$.fancybox.next();
 		});
@@ -1081,18 +1084,8 @@
 				}
 			});
 		}
-
-		if (!$.support.opacity) {
-			wrap.addClass('fancybox-ie');
-		}
-
-		if (isIE6) {
-			loading.addClass('fancybox-ie6');
-			wrap.addClass('fancybox-ie6');
-
-			$('<iframe id="fancybox-hide-sel-frame" src="' + (/^https/i.test(window.location.href || '') ? 'javascript:void(false)' : 'about:blank' ) + '" scrolling="no" border="0" frameborder="0" tabindex="-1"></iframe>').prependTo(outer);
-		}
 	};
+
 
 	$.fn.fancybox.defaults = {
 		padding : 10,
@@ -1148,6 +1141,7 @@
 		onClosed : function(){},
 		onError : function(){}
 	};
+
 
 	$(document).ready(function() {
 		$.fancybox.init();
