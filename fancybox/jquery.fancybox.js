@@ -2,7 +2,7 @@
  * Copyright (c) 2008 - 2010 Janis Skarnelis
  * Updated by Sergei Vasilev (https://github.com/Ser-Gen)
  *
- * Version: 1.4.0
+ * Version: 1.5.0
  *
  * Dual licensed under the MIT and GPL licenses:
  *	 http://www.opensource.org/licenses/mit-license.php
@@ -29,9 +29,9 @@
 	}
 	else {
 		actionEventUp = 'click';
-	}
+	};
 
-	var tmp, loading, overlay, wrap, outer, content, close, title, nav_left, nav_right,
+	var tmp, loading, overlay, wrap, outer, content, close, title, nav_left, nav_right, SCROLLBAR_WIDTH,
 
 		selectedIndex = 0, selectedOpts = {}, selectedArray = [], currentIndex = 0, currentOpts = {}, currentArray = [],
 
@@ -44,6 +44,16 @@
 		/*
 		 * Private methods 
 		 */
+
+		_scrollBarCheck = function() {
+			if ($('html').hasScrollBarY() || $('html').css('overflow') === 'scroll' || $('html').css('overflow-y') === 'scroll') {
+				$('html').addClass('fancybox__shift');
+			} else {
+				$('html').removeClass('fancybox__shift');
+			};
+			
+			$('html').addClass('fancybox__lock');
+		},
 
 		_abort = function() {
 			loading.hide();
@@ -85,9 +95,15 @@
 
 			_abort();
 
-			selectedOpts = $.extend({}, $.fn.fancybox.defaults, (typeof $(obj).data('fancybox') == 'undefined' ? selectedOpts : $(obj).data('fancybox')));
+			selectedOpts = $.extend(
+				{},
+				$.fn.fancybox.defaults,
+				window.fancybox,
+				(typeof $(obj).data('fancybox') == 'undefined' ? selectedOpts : $(obj).data('fancybox')));
 
 			ret = selectedOpts.onStart(selectedArray, selectedIndex, selectedOpts);
+
+			_scrollBarCheck();
 
 			if (ret === false) {
 				busy = false;
@@ -111,6 +127,8 @@
 			if ((/^(?:javascript)/i).test(href) || href == '#') {
 				href = null;
 			}
+
+			overlay.addClass(selectedOpts.fancyClass);
 
 			if (selectedOpts.type) {
 				type = selectedOpts.type;
@@ -177,7 +195,7 @@
 			tmp.css('padding', (selectedOpts.padding + selectedOpts.margin));
 
 			$('.fancybox-inline-tmp').unbind('fancybox-cancel').bind('fancybox-change', function() {
-				$(this).replaceWith(content.children());				
+				$(this).replaceWith(content.children());
 			});
 
 			switch (type) {
@@ -357,12 +375,25 @@
 			currentOpts = selectedOpts;
 
 			if (currentOpts.overlayShow) {
-				overlay.css({
-					'background-color' : currentOpts.overlayColor,
-					'opacity' : currentOpts.overlayOpacity,
+				var overlayCss = {
 					'cursor' : currentOpts.hideOnOverlayClick ? 'pointer' : 'auto',
-					'height' : $(document).height()
-				});
+					'height' : $(window).height()
+				};
+
+				if (currentOpts.overlayColor) {
+					var colorConverter = $('<div></div>'), overlayColor;
+
+					$('body').append(colorConverter);
+					colorConverter.css('background-color', currentOpts.overlayColor);
+					overlayColor = colorConverter.css('background-color');
+					overlayCss.backgroundColor = overlayColor;
+					colorConverter.remove();
+
+					if (currentOpts.overlayOpacity){
+						overlayCss.backgroundColor = overlayColor.replace(')', ', 0.75)').replace('rgb', 'rgba');
+					};
+				};
+				overlay.css(overlayCss);
 
 				if (!overlay.is(':visible')) {
 					overlay.show();
@@ -372,6 +403,10 @@
 			}
 
 			final_pos = _get_zoom_to();
+
+			if (currentOpts.transitionIn !== 'elastic') {
+				final_pos.height = 'auto';
+			};
 
 			_process_title();
 
@@ -399,7 +434,7 @@
 					content
 						.empty()
 						.css({
-							'border-width' : currentOpts.padding,
+							'padding' : currentOpts.padding,
 							'width'	: final_pos.width - currentOpts.padding * 2,
 							'height' : selectedOpts.autoDimensions ? 'auto' : final_pos.height - titleHeight - currentOpts.padding * 2
 						});
@@ -420,18 +455,22 @@
 				});
 
 				return;
-			}
-
+			};
+			
 			wrap.removeAttr("style");
 
-			content.css('border-width', currentOpts.padding);
+			content.css('padding', currentOpts.padding);
 
 			if (currentOpts.transitionIn == 'elastic') {
 				start_pos = _get_zoom_from();
 
 				content.html( tmp.contents() );
 
-				wrap.show();
+				overlay.show();
+				wrap.css({
+					'display': 'inline-block',
+					'position': 'absolute'
+				});
 
 				if (currentOpts.opacity) {
 					final_pos.opacity = 0;
@@ -440,10 +479,10 @@
 				fx.prop = 0;
 
 				$(fx).animate({prop: 1}, {
-					 duration : currentOpts.speedIn,
-					 easing : currentOpts.easingIn,
-					 step : _draw,
-					 complete : _finish
+					duration : currentOpts.speedIn,
+					easing : currentOpts.easingIn,
+					step : _draw,
+					complete : _finish
 				});
 
 				return;
@@ -460,9 +499,16 @@
 				})
 				.html( tmp.contents() );
 
-			wrap
-				.css(final_pos)
-				.fadeIn( currentOpts.transitionIn == 'none' ? 0 : currentOpts.speedIn, _finish );
+			wrap.css(final_pos);
+			
+			if (currentOpts.transitionIn !== 'none') {
+				wrap.css('display', 'inline-block');
+				wrap.css('opacity', 0);
+				wrap.animate({'opacity': 1}, currentOpts.speedIn, _finish);
+			}
+			else {
+				_finish();
+			};
 		},
 
 		_format_title = function(title) {
@@ -584,7 +630,10 @@
 				content.css('height', 'auto');
 			}
 
-			wrap.css('height', 'auto');
+			wrap.css({
+				'height': 'auto',
+				'position': 'static'
+			});
 
 			if (titleStr && titleStr.length) {
 				title.show();
@@ -597,11 +646,15 @@
 			_set_navigation();
 	
 			if (currentOpts.hideOnContentClick)	{
-				content.bind(actionEventUp, $.fancybox.close);
+				content.bind(actionEventUp +'.fb', $.fancybox.close);
 			}
 
 			if (currentOpts.hideOnOverlayClick)	{
-				overlay.bind(actionEventUp, $.fancybox.close);
+				overlay.bind(actionEventUp +'.fb', function (e) {
+					if ($(e.target).attr('id') === 'fancybox-overlay') {
+						$.fancybox.close();
+					};
+				});
 			}
 
 			if (actionEventUp == 'click') {
@@ -619,13 +672,9 @@
 				$('<iframe id="fancybox-frame" name="fancybox-frame' + new Date().getTime() + '" frameborder="0" hspace="0" ' + (window.navigator.userAgent.indexOf("MSIE") >= 0 ? 'allowtransparency="true""' : '') + ' scrolling="' + selectedOpts.scrolling + '" src="' + currentOpts.href + '"></iframe>').appendTo(content);
 			}
 
-			wrap.show();
+			wrap.css('display', 'inline-block');
 
 			busy = false;
-
-			$.fancybox.center();
-
-			overlay.css('height', $(document).height());
 
 			currentOpts.onComplete(currentArray, currentIndex, currentOpts);
 
@@ -724,8 +773,12 @@
 				}
 			}
 
-			to.top = parseInt(Math.max(view[3] - 20, view[3] + ((view[1] - to.height - 40) * 0.5)), 10);
-			to.left = parseInt(Math.max(view[2] - 20, view[2] + ((view[0] - to.width - 40) * 0.5)), 10);
+			to.top = parseInt(Math.max(view[3], view[3] + ((view[1] - to.height) * 0.5)), 10) - $(window).scrollTop();
+			to.left = parseInt(Math.max(view[2], view[2] + ((view[0] - to.width) * 0.5)), 10);
+
+			if ($('html').hasClass('fancybox__shift')) {
+				to.left -= SCROLLBAR_WIDTH  / 2;
+			};
 
 			return to;
 		},
@@ -733,10 +786,7 @@
 		_get_obj_pos = function(obj) {
 			var pos = obj.offset();
 
-			pos.top += parseInt( obj.css('paddingTop'), 10 ) || 0;
 			pos.left += parseInt( obj.css('paddingLeft'), 10 ) || 0;
-
-			pos.top += parseInt( obj.css('border-top-width'), 10 ) || 0;
 			pos.left += parseInt( obj.css('border-left-width'), 10 ) || 0;
 
 			pos.width = obj.width();
@@ -757,8 +807,8 @@
 				from = {
 					width : pos.width + (currentOpts.padding * 2),
 					height : pos.height + (currentOpts.padding * 2),
-					top	: pos.top - currentOpts.padding - 20,
-					left : pos.left - currentOpts.padding - 20
+					top	: pos.top - currentOpts.padding - $(window).scrollTop(),
+					left : pos.left - currentOpts.padding
 				};
 
 			} else {
@@ -965,9 +1015,13 @@
 
 			$.event.trigger('fancybox-cleanup');
 
-			content.empty();
+			content.attr('style', '').empty();
 
 			currentOpts.onClosed(currentArray, currentIndex, currentOpts);
+
+			$('html').removeClass('fancybox__shift fancybox__lock');
+
+			overlay.removeClass(currentOpts.fancyClass);
 
 			currentArray = selectedOpts	= [];
 			currentIndex = selectedIndex = 0;
@@ -981,8 +1035,10 @@
 
 			var pos = wrap.position();
 
+			wrap.css('position', 'absolute');
+
 			final_pos = {
-				top	 : pos.top ,
+				top	 : pos.top,
 				left : pos.left,
 				width :	wrap.width(),
 				height : wrap.height()
@@ -997,10 +1053,10 @@
 			fx.prop = 1;
 
 			$(fx).animate({ prop: 0 }, {
-				 duration : currentOpts.speedOut,
-				 easing : currentOpts.easingOut,
-				 step : _draw,
-				 complete : _cleanup
+				duration : currentOpts.speedOut,
+				easing : currentOpts.easingOut,
+				step : _draw,
+				complete : _cleanup
 			});
 
 		} else {
@@ -1010,8 +1066,10 @@
 
 	$.fancybox.resize = function() {
 		if (overlay.is(':visible')) {
-			overlay.css('height', $(document).height());
+			overlay.css('height', $(window).height());
 		};
+
+		_scrollBarCheck();
 	};
 
 	$.fancybox.center = function() {
@@ -1041,12 +1099,10 @@
 			return;
 		}
 
-		$('body').append(
-			tmp	= $('<div id="fancybox-tmp"></div>'),
-			loading	= $('<div id="fancybox-loading"><div></div></div>'),
-			overlay	= $('<div id="fancybox-overlay"></div>'),
-			wrap = $('<div id="fancybox-wrap"></div>')
-		);
+		overlay = $('<div id="fancybox-overlay"></div>');
+
+		wrap = $('<div id="fancybox-wrap"></div>')
+			.appendTo( overlay );
 
 		outer = $('<div id="fancybox-outer"></div>')
 			.appendTo( wrap );
@@ -1060,31 +1116,86 @@
 			nav_right = $('<a href="javascript:;" id="fancybox-right"><span class="fancy-ico" id="fancybox-right-ico"></span></a>')
 		);
 
-		close.bind(actionEventUp, $.fancybox.close);
-		loading.bind(actionEventUp, $.fancybox.cancel);
+		$('body').append(
+			tmp	= $('<div id="fancybox-tmp"></div>'),
+			loading	= $('<div id="fancybox-loading"><div></div></div>'),
+			overlay
+		);
 
-		nav_left.bind(actionEventUp, function(e) {
+		close.bind(actionEventUp +'.fb', $.fancybox.close);
+		loading.bind(actionEventUp +'.fb', $.fancybox.cancel);
+
+		nav_left.bind(actionEventUp +'.fb', function(e) {
 			e.preventDefault();
 			$.fancybox.prev();
 		});
 
-		nav_right.bind(actionEventUp, function(e) {
+		nav_right.bind(actionEventUp +'.fb', function(e) {
 			e.preventDefault();
 			$.fancybox.next();
 		});
 
 		if ($.fn.mousewheel) {
 			wrap.bind('mousewheel.fb', function(e, delta) {
-				if (busy) {
-					e.preventDefault();
+				if (currentArray.length > 1) {
+					if (busy) {
+						e.preventDefault();
 
-				} else if ($(e.target).get(0).clientHeight == 0 || $(e.target).get(0).scrollHeight === $(e.target).get(0).clientHeight) {
-					e.preventDefault();
-					$.fancybox[ delta > 0 ? 'prev' : 'next']();
-				}
+					} else if ($(e.target).get(0).clientHeight == 0 || $(e.target).get(0).scrollHeight === $(e.target).get(0).clientHeight) {
+						e.preventDefault();
+						$.fancybox[ delta > 0 ? 'prev' : 'next']();
+					}
+				};
 			});
 		}
 	};
+
+
+	// работа с полосой прокрутки
+	(function(){
+
+		// определение ширины полосы прокрутки
+		var obj = document.createElement("div");
+
+		obj.style.cssText = ' \
+		width: 100px; \
+		height: 100px; \
+		overflow: scroll; \
+		position: absolute; \
+		top: -9999px; \
+		visibility: hidden;';
+
+		document.documentElement.appendChild(obj);
+
+		SCROLLBAR_WIDTH = obj.offsetWidth - obj.clientWidth;
+		obj.parentNode.removeChild(obj);
+
+		// добавление стиля в шапку
+		// http://stackoverflow.com/questions/524696/how-to-create-a-style-tag-with-javascript#answer-524721
+		var css = '.fancybox__shift{margin-right: '+ SCROLLBAR_WIDTH +'px !important;}';
+		var head = document.head || document.getElementsByTagName('head')[0];
+		var style = document.createElement('style');
+
+		style.type = 'text/css';
+		
+		if (style.styleSheet){
+			style.styleSheet.cssText = css;
+		}
+		else {
+			style.appendChild(document.createTextNode(css));
+		};
+
+		head.appendChild(style);
+	})();
+
+
+	// определение наличия полосы прокрутки
+	// http://stackoverflow.com/questions/4814398/how-can-i-check-if-a-scrollbar-is-visible
+	$.fn.hasScrollBarY = function() {
+		return this.get(0) ? this.get(0).offsetHeight > this.get(0).clientHeight : false;
+	};
+
+	// ~ работа с полосой прокрутки
 
 
 	$.fn.fancybox.defaults = {
@@ -1094,6 +1205,8 @@
 		modal : false,
 		cyclic : false,
 		scrolling : 'auto',	// 'auto', 'yes' or 'no'
+
+		fancyClass: '',
 
 		width : 560,
 		height : 340,
