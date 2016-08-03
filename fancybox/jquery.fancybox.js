@@ -2,7 +2,7 @@
  * Copyright (c) 2008 - 2010 Janis Skarnelis
  * Updated by Sergei Vasilev (https://github.com/Ser-Gen)
  *
- * Version: 1.5.0
+ * Version: 1.5.1
  *
  * Dual licensed under the MIT and GPL licenses:
  *	 http://www.opensource.org/licenses/mit-license.php
@@ -404,16 +404,12 @@
 
 			final_pos = _get_zoom_to();
 
-			if (currentOpts.transitionIn !== 'elastic') {
-				final_pos.height = 'auto';
-			};
-
 			_process_title();
 
 			if (wrap.is(":visible")) {
 				$( close.add( nav_left ).add( nav_right ) ).hide();
 
-				pos = wrap.position(),
+				pos = wrap.position();
 
 				start_pos = {
 					top	 : pos.top,
@@ -426,6 +422,7 @@
 
 				content.fadeTo(currentOpts.changeFade, 0.3, function() {
 					var finish_resizing = function() {
+						overlay.scrollTop(0);
 						content.html( tmp.contents() ).fadeTo(currentOpts.changeFade, 1, _finish);
 					};
 
@@ -441,20 +438,24 @@
 
 					if (equal) {
 						finish_resizing();
-
-					} else {
+					}
+					else {
 						fx.prop = 0;
 
 						$(fx).animate({prop: 1}, {
-							 duration : currentOpts.changeSpeed,
-							 easing : currentOpts.easingChange,
-							 step : _draw,
-							 complete : finish_resizing
+							duration : currentOpts.changeSpeed,
+							easing : currentOpts.easingChange,
+							step : _draw,
+							complete : finish_resizing
 						});
 					}
 				});
 
 				return;
+			};
+
+			if (currentOpts.transitionIn !== 'elastic') {
+				final_pos.height = 'auto';
 			};
 			
 			wrap.removeAttr("style");
@@ -489,7 +490,7 @@
 			}
 
 			if (currentOpts.titlePosition == 'inside' && titleHeight > 0) {	
-				title.show();	
+				title.show();
 			}
 
 			content
@@ -664,10 +665,6 @@
 				$(window).bind("orientationchange.fb", $.fancybox.resize);
 			};
 
-			if (currentOpts.centerOnScroll) {
-				$(window).bind("scroll.fb", $.fancybox.center);
-			}
-
 			if (currentOpts.type == 'iframe') {
 				$('<iframe id="fancybox-frame" name="fancybox-frame' + new Date().getTime() + '" frameborder="0" hspace="0" ' + (window.navigator.userAgent.indexOf("MSIE") >= 0 ? 'allowtransparency="true""' : '') + ' scrolling="' + selectedOpts.scrolling + '" src="' + currentOpts.href + '"></iframe>').appendTo(content);
 			}
@@ -753,7 +750,7 @@
 				to.height = currentOpts.height + double_padding;
 			}
 
-			if (resize && (to.width > view[0] || to.height > view[1])) {
+			if (['html', 'inline', 'ajax'].indexOf(currentOpts.type) < 0 && resize && (to.width > view[0] || to.height > view[1])) {
 				if (selectedOpts.type == 'image' || selectedOpts.type == 'swf') {
 					ratio = (currentOpts.width ) / (currentOpts.height );
 
@@ -1073,25 +1070,7 @@
 	};
 
 	$.fancybox.center = function() {
-		var view, align;
-
-		if (busy) {
-			return;	
-		}
-
-		align = arguments[0] === true ? 1 : 0;
-		view = _get_viewport();
-
-		if (!align && (wrap.width() > view[0] || wrap.height() > view[1])) {
-			return;	
-		}
-
-		wrap
-			.stop()
-			.animate({
-				'top' : parseInt(Math.max(view[3] - 20, view[3] + ((view[1] - content.height() - 40) * 0.5) - currentOpts.padding)),
-				'left' : parseInt(Math.max(view[2] - 20, view[2] + ((view[0] - content.width() - 40) * 0.5) - currentOpts.padding))
-			}, typeof arguments[0] == 'number' ? arguments[0] : 200);
+		// центрирование с версии 1.5.0 производится стилями
 	};
 
 	$.fancybox.init = function() {
@@ -1213,6 +1192,9 @@
 
 		autoScale : true,
 		autoDimensions : true,
+
+		// не используется с 1.5.1,
+		// центрируется всегда
 		centerOnScroll : false,
 
 		ajax : {},
