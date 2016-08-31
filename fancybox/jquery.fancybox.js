@@ -2,7 +2,7 @@
  * Copyright (c) 2008 - 2010 Janis Skarnelis
  * Updated by Sergei Vasilev (https://github.com/Ser-Gen)
  *
- * Version: 1.5.1
+ * Version: 1.5.2
  *
  * Dual licensed under the MIT and GPL licenses:
  *	 http://www.opensource.org/licenses/mit-license.php
@@ -11,27 +11,27 @@
 
 ;(function($) {
 
-	var actionEventUp;
+	var actionEvent;
 
 	// http://msdn.microsoft.com/ru-ru/library/ie/dn304886%28v=vs.85%29.aspx
 	if ( navigator.pointerEnabled ) {
-		actionEventUp = 'pointerup';
+		actionEvent = 'pointerdown';
 	}
 	
 	// http://msdn.microsoft.com/en-US/library/ie/hh673557.aspx
 	else if ( window.navigator.msPointerEnabled ) {
-		actionEventUp = 'MSPointerUp';
+		actionEvent = 'MSPointerDown';
 	}
 
 	// https://developer.mozilla.org/en-US/docs/DOM/Touch_events
 	else if ( 'ontouchstart' in window ) {
-		actionEventUp = 'touchend';
+		actionEvent = 'touchstart';
 	}
 	else {
-		actionEventUp = 'click';
+		actionEvent = 'click';
 	};
 
-	var tmp, loading, overlay, wrap, outer, content, close, title, nav_left, nav_right, SCROLLBAR_WIDTH,
+	var tmp, loading, overlay, wrap, outer, content, close, title, nav_left, nav_right, SCROLLBAR_WIDTH, bodyScrollCache = 0,
 
 		selectedIndex = 0, selectedOpts = {}, selectedArray = [], currentIndex = 0, currentOpts = {}, currentArray = [],
 
@@ -48,8 +48,16 @@
 		_scrollBarCheck = function() {
 			if ($('html').hasScrollBarY() || $('html').css('overflow') === 'scroll' || $('html').css('overflow-y') === 'scroll') {
 				$('html').addClass('fancybox__shift');
-			} else {
+			}
+			else {
 				$('html').removeClass('fancybox__shift');
+			};
+
+			if (actionEvent === 'touchstart') {
+				if (!$('html').hasClass('fancybox__touch')) {
+					bodyScrollCache = $(window).scrollTop();
+				};
+				$('html').addClass('fancybox__touch');
 			};
 			
 			$('html').addClass('fancybox__lock');
@@ -350,6 +358,12 @@
 		_show = function() {
 			var pos, equal;
 
+			if (actionEvent === 'touchstart') {
+				$('body').css({
+					top: -bodyScrollCache
+				});
+			};
+
 			loading.hide();
 
 			if (wrap.is(":visible") && false === currentOpts.onCleanup(currentArray, currentIndex, currentOpts)) {
@@ -647,18 +661,18 @@
 			_set_navigation();
 	
 			if (currentOpts.hideOnContentClick)	{
-				content.bind(actionEventUp +'.fb', $.fancybox.close);
+				content.bind(actionEvent +'.fb', $.fancybox.close);
 			}
 
 			if (currentOpts.hideOnOverlayClick)	{
-				overlay.bind(actionEventUp +'.fb', function (e) {
+				overlay.bind('click.fb', function (e) {
 					if ($(e.target).attr('id') === 'fancybox-overlay') {
 						$.fancybox.close();
 					};
 				});
 			}
 
-			if (actionEventUp == 'click') {
+			if (actionEvent === 'click') {
 				$(window).bind("resize.fb", $.fancybox.resize);
 			}
 			else {
@@ -770,7 +784,13 @@
 				}
 			}
 
-			to.top = parseInt(Math.max(view[3], view[3] + ((view[1] - to.height) * 0.5)), 10) - $(window).scrollTop();
+			if (actionEvent === 'touchstart') {
+				to.top = 0;
+			}
+			else {
+				to.top = parseInt(Math.max(view[3], view[3] + ((view[1] - to.height) * 0.5)), 10) - $(window).scrollTop();
+			};
+
 			to.left = parseInt(Math.max(view[2], view[2] + ((view[0] - to.width) * 0.5)), 10);
 
 			if ($('html').hasClass('fancybox__shift')) {
@@ -842,10 +862,12 @@
 			return this;
 		}
 
+		var obj = $(this);
+
 		$(this)
 			.data('fancybox', $.extend({}, options, ($.metadata ? $(this).metadata() : {})))
-			.unbind(actionEventUp +'.fb')
-			.bind(actionEventUp +'.fb', function(e) {
+			.unbind('click.fb')
+			.bind('click.fb', function(e) {
 				e.preventDefault();
 
 				if (busy) {
@@ -1016,7 +1038,14 @@
 
 			currentOpts.onClosed(currentArray, currentIndex, currentOpts);
 
-			$('html').removeClass('fancybox__shift fancybox__lock');
+			$('html').removeClass('fancybox__shift fancybox__lock fancybox__touch');
+
+			if (actionEvent === 'touchstart') {
+				$('body').css({
+					top: 0
+				});
+				$('html, body').scrollTop(bodyScrollCache);
+			};
 
 			overlay.removeClass(currentOpts.fancyClass);
 
@@ -1101,15 +1130,15 @@
 			overlay
 		);
 
-		close.bind(actionEventUp +'.fb', $.fancybox.close);
-		loading.bind(actionEventUp +'.fb', $.fancybox.cancel);
+		close.bind(actionEvent +'.fb', $.fancybox.close);
+		loading.bind(actionEvent +'.fb', $.fancybox.cancel);
 
-		nav_left.bind(actionEventUp +'.fb', function(e) {
+		nav_left.bind(actionEvent +'.fb', function(e) {
 			e.preventDefault();
 			$.fancybox.prev();
 		});
 
-		nav_right.bind(actionEventUp +'.fb', function(e) {
+		nav_right.bind(actionEvent +'.fb', function(e) {
 			e.preventDefault();
 			$.fancybox.next();
 		});
