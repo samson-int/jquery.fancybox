@@ -2,7 +2,7 @@
  * Copyright (c) 2008 - 2010 Janis Skarnelis
  * Updated by Sergei Vasilev (https://github.com/Ser-Gen)
  *
- * Version: 1.5.2
+ * Version: 1.4.1
  *
  * Dual licensed under the MIT and GPL licenses:
  *   http://www.opensource.org/licenses/mit-license.php
@@ -31,28 +31,12 @@
 	background-image: url("img/fancybox.png");
 }
 #fancybox-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
 	width: 100%;
 	z-index: 1100;
 	display: none;
-	
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	height: auto !important;
-	
-	overflow: auto;
-	-webkit-overflow-scrolling: touch;
-	
-	text-align: center;
-	white-space: nowrap;
-}
-#fancybox-overlay:before {
-	content: "";
-	display: inline-block;
-	height: 100%;
-	vertical-align: middle;
 }
 #fancybox-tmp {
 	padding: 0;
@@ -62,22 +46,14 @@
 	display: none;
 }
 #fancybox-wrap {
-	cursor: auto;
+	position: absolute;
+	top: 0;
+	left: 0;
+	padding: 20px;
 	z-index: 1101;
 	outline: none;
 	display: none;
-	text-align: left;
-	vertical-align: middle;
-	white-space: normal;
 }
-
-.fancybox__touch #fancybox-overlay:before {
-	display: none;
-}
-.fancybox__touch #fancybox-wrap {
-	margin: 30px 0;
-}
-
 #fancybox-outer {
 	position: relative;
 	width: 100%;
@@ -86,12 +62,13 @@
 }
 #fancybox-content {
 	width: 0;
-	height: auto;
+	height: 0;
 	padding: 0;
 	outline: none;
 	position: relative;
 	overflow: hidden;
 	z-index: 1102;
+	border: 0px solid #fff;
 }
 #fancybox-hide-sel-frame {
 	position: absolute;
@@ -112,8 +89,6 @@
 	cursor: pointer;
 	z-index: 1103;
 	display: none;
-	font: normal 27px/30px arial, helvetica, sans-serif;
-	text-align: center;
 }
 #fancybox-error {
 	color: #444;
@@ -211,13 +186,14 @@
 	display: block;
 }
 .fancybox-title-float {
+	position: absolute;
+	left: 0;
+	bottom: -20px;
 	height: 32px;
-	margin-top: 1em;
 }
 #fancybox-title-float-wrap {
 	border: none;
 	border-collapse: collapse;
-	margin: auto;
 	width: auto;
 }
 #fancybox-title-float-wrap td {
@@ -239,24 +215,8 @@
 	padding: 0 0 0 15px;
 	background: url("img/fancybox.png") -55px -90px no-repeat;
 }
-.fancybox__lock {
-	overflow: visible !important;
-	width: auto;
-}
-.fancybox__lock body {
-	overflow: hidden !important;
-}
-.fancybox__lock.fancybox__touch body {
-	position: fixed !important;
-	width: 100% !important;
-	height: 100% !important;
-}
-.fancybox__shift #fancybox-overlay {
-	overflow: auto;
-	overflow-y: scroll;
-}
 
 /* IE8 */
 .fancybox-ie .fancybox-bg {
-	background: transparent !important;
+  background: transparent !important;
 }
