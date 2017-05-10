@@ -112,10 +112,12 @@
 				href = null;
 			}
 
-			overlay.addClass(selectedOpts.fancyClass);
-			wrap.addClass(selectedOpts.fancyClass);
-			loading.addClass(selectedOpts.fancyClass);
-			tmp.addClass(selectedOpts.fancyClass);
+			if (currentOpts.fancyClass) {
+				overlay.addClass(selectedOpts.fancyClass);
+				wrap.addClass(selectedOpts.fancyClass);
+				loading.addClass(selectedOpts.fancyClass);
+				tmp.addClass(selectedOpts.fancyClass);
+			};
 
 			if (selectedOpts.type) {
 				type = selectedOpts.type;
@@ -975,10 +977,12 @@
 
 			currentOpts.onClosed(currentArray, currentIndex, currentOpts);
 
-			overlay.removeClass(currentOpts.fancyClass);
-			wrap.removeClass(selectedOpts.fancyClass);
-			loading.removeClass(selectedOpts.fancyClass);
-			tmp.removeClass(selectedOpts.fancyClass);
+			if (currentOpts.fancyClass) {
+				overlay.removeClass(currentOpts.fancyClass);
+				wrap.removeClass(selectedOpts.fancyClass);
+				loading.removeClass(selectedOpts.fancyClass);
+				tmp.removeClass(selectedOpts.fancyClass);
+			};
 
 			currentArray = selectedOpts	= [];
 			currentIndex = selectedIndex = 0;
