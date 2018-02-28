@@ -2,7 +2,7 @@
  * Copyright (c) 2008 - 2010 Janis Skarnelis
  * Updated by Sergei Vasilev (https://github.com/Ser-Gen)
  *
- * Version: 1.4.2
+ * Version: 1.4.3
  *
  * Dual licensed under the MIT and GPL licenses:
  *	 http://www.opensource.org/licenses/mit-license.php
@@ -112,7 +112,7 @@
 				href = null;
 			}
 
-			if (currentOpts.fancyClass) {
+			if (selectedOpts.fancyClass) {
 				overlay.addClass(selectedOpts.fancyClass);
 				wrap.addClass(selectedOpts.fancyClass);
 				loading.addClass(selectedOpts.fancyClass);
@@ -979,9 +979,9 @@
 
 			if (currentOpts.fancyClass) {
 				overlay.removeClass(currentOpts.fancyClass);
-				wrap.removeClass(selectedOpts.fancyClass);
-				loading.removeClass(selectedOpts.fancyClass);
-				tmp.removeClass(selectedOpts.fancyClass);
+				wrap.removeClass(currentOpts.fancyClass);
+				loading.removeClass(currentOpts.fancyClass);
+				tmp.removeClass(currentOpts.fancyClass);
 			};
 
 			currentArray = selectedOpts	= [];
