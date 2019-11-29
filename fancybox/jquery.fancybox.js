@@ -2,7 +2,7 @@
  * Copyright (c) 2008 - 2010 Janis Skarnelis
  * Updated by Sergei Vasilev (https://github.com/Ser-Gen)
  *
- * Version: 1.4.3
+ * Version: 1.4.4
  *
  * Dual licensed under the MIT and GPL licenses:
  *	 http://www.opensource.org/licenses/mit-license.php
@@ -58,6 +58,12 @@
 		},
 
 		_error = function() {
+			$.event.trigger('fancybox-onError', [
+				currentArray,
+				currentIndex,
+				currentOpts
+			]);
+
 			if (false === selectedOpts.onError(selectedArray, selectedIndex, selectedOpts)) {
 				loading.hide();
 				busy = false;
@@ -86,6 +92,12 @@
 			_abort();
 
 			selectedOpts = $.extend({}, $.fn.fancybox.defaults, (typeof $(obj).data('fancybox') == 'undefined' ? selectedOpts : $(obj).data('fancybox')));
+
+			$.event.trigger('fancybox-onStart', [
+				selectedArray,
+				selectedIndex,
+				selectedOpts
+			]);
 
 			ret = selectedOpts.onStart(selectedArray, selectedIndex, selectedOpts);
 
@@ -340,6 +352,12 @@
 			var pos, equal;
 
 			loading.hide();
+
+			$.event.trigger('fancybox-onCleanup', [
+				currentArray,
+				currentIndex,
+				currentOpts
+			]);
 
 			if (wrap.is(":visible") && false === currentOpts.onCleanup(currentArray, currentIndex, currentOpts)) {
 				$.event.trigger('fancybox-cancel');
@@ -634,6 +652,12 @@
 			$.fancybox.center();
 
 			overlay.css('height', $(document).height());
+
+			$.event.trigger('fancybox-onComplete', [
+				currentArray,
+				currentIndex,
+				currentOpts
+			]);
 
 			currentOpts.onComplete(currentArray, currentIndex, currentOpts);
 
@@ -930,6 +954,12 @@
 
 		_abort();
 
+		$.event.trigger('fancybox-onCancel', [
+			selectedArray,
+			selectedIndex,
+			selectedOpts
+		]);
+
 		selectedOpts.onCancel(selectedArray, selectedIndex, selectedOpts);
 
 		busy = false;
@@ -942,6 +972,12 @@
 		}
 
 		busy = true;
+
+		$.event.trigger('fancybox-onCleanup', [
+			currentArray,
+			currentIndex,
+			currentOpts
+		]);
 
 		if (currentOpts && false === currentOpts.onCleanup(currentArray, currentIndex, currentOpts)) {
 			busy = false;
@@ -974,6 +1010,12 @@
 			$.event.trigger('fancybox-cleanup');
 
 			content.empty();
+
+			$.event.trigger('fancybox-onClosed', [
+				currentArray,
+				currentIndex,
+				currentOpts
+			]);
 
 			currentOpts.onClosed(currentArray, currentIndex, currentOpts);
 
