@@ -400,6 +400,16 @@
 
 			_process_title();
 
+			var cbOnBeforeShow = function () {
+				$.event.trigger('fancybox-onBeforeShow', [
+					currentArray,
+					currentIndex,
+					currentOpts
+				]);
+
+				currentOpts.onBeforeShow(currentArray, currentIndex, currentOpts);
+			};
+
 			if (wrap.is(":visible")) {
 				$( close.add( nav_left ).add( nav_right ) ).hide();
 
@@ -416,7 +426,11 @@
 
 				content.fadeTo(currentOpts.changeFade, 0.3, function() {
 					var finish_resizing = function() {
-						content.html( tmp.contents() ).fadeTo(currentOpts.changeFade, 1, _finish);
+						content.html( tmp.contents() );
+
+						cbOnBeforeShow();
+
+						content.fadeTo(currentOpts.changeFade, 1, _finish);
 					};
 
 					$.event.trigger('fancybox-change');
@@ -456,6 +470,8 @@
 
 				content.html( tmp.contents() );
 
+				cbOnBeforeShow();
+
 				wrap.show();
 
 				if (currentOpts.opacity) {
@@ -484,6 +500,8 @@
 					'height' : selectedOpts.autoDimensions ? 'auto' : final_pos.height - titleHeight - currentOpts.padding * 2
 				})
 				.html( tmp.contents() );
+
+			cbOnBeforeShow();
 
 			wrap
 				.css(final_pos)
@@ -1200,6 +1218,7 @@
 
 		onStart : function(){},
 		onCancel : function(){},
+		onBeforeShow : function(){},
 		onComplete : function(){},
 		onCleanup : function(){},
 		onClosed : function(){},
