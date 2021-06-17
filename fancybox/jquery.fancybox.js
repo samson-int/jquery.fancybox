@@ -386,7 +386,6 @@
 					'background-color' : currentOpts.overlayColor,
 					'opacity' : currentOpts.overlayOpacity,
 					'cursor' : currentOpts.hideOnOverlayClick ? 'pointer' : 'auto',
-					'height' : $(document).height()
 				});
 
 				if (!overlay.is(':visible')) {
@@ -650,8 +649,6 @@
 			busy = false;
 
 			$.fancybox.center();
-
-			overlay.css('height', $(document).height());
 
 			$.event.trigger('fancybox-onComplete', [
 				currentArray,
@@ -1066,9 +1063,6 @@
 	};
 
 	$.fancybox.resize = function() {
-		if (overlay.is(':visible')) {
-			overlay.css('height', $(document).height());
-		};
 
 		// на трогательных не надо центрировать
 		if (actionEvent == 'click') {
