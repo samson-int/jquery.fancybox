@@ -353,12 +353,6 @@
 
 			loading.hide();
 
-			$.event.trigger('fancybox-onCleanup', [
-				currentArray,
-				currentIndex,
-				currentOpts
-			]);
-
 			if (wrap.is(":visible") && false === currentOpts.onCleanup(currentArray, currentIndex, currentOpts)) {
 				$.event.trigger('fancybox-cancel');
 
