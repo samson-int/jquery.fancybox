@@ -372,6 +372,63 @@
 			_show();
 		},
 
+		_update = function () {
+			if (wrap.is(':visible')) {
+				tmp.html( selectedOpts.content );
+
+				selectedOpts.width = tmp.width();
+				selectedOpts.height = tmp.height();
+
+				var pos = wrap.position();
+
+				final_pos = _get_zoom_to();
+				start_pos = {
+					top: pos.top,
+					left: pos.left,
+					width: wrap.width(),
+					height: wrap.height(),
+				};
+
+				var equal = (
+					start_pos.width === final_pos.width
+					&& start_pos.height === final_pos.height
+				);
+
+				var finishUpdating = function() {
+					if (selectedOpts.autoDimensions) {
+						content.css('height', 'auto');
+					}
+
+					wrap.css({
+						'height': 'auto',
+						'position': 'static'
+					});
+
+					$.event.trigger('fancybox-onUpdate', [
+						currentArray,
+						currentIndex,
+						currentOpts
+					]);
+
+					currentOpts.onUpdate(currentArray, currentIndex, currentOpts);
+				};
+
+				$.event.trigger('fancybox-update');
+
+				if (equal) {
+					finishUpdating();
+				} else {
+					fx.prop = 0;
+
+					$(fx).stop(true, true).animate({prop: 1}, {
+						duration : currentOpts.changeSpeed,
+						step : _draw,
+						complete : finishUpdating,
+					});
+				}
+			}
+		},
+
 		_show = function() {
 			var pos, equal;
 
@@ -382,12 +439,6 @@
 			};
 
 			loading.hide();
-
-			$.event.trigger('fancybox-onCleanup', [
-				currentArray,
-				currentIndex,
-				currentOpts
-			]);
 
 			if (wrap.is(":visible") && false === currentOpts.onCleanup(currentArray, currentIndex, currentOpts)) {
 				$.event.trigger('fancybox-cancel');
@@ -1160,12 +1211,18 @@
 		}
 	};
 
+	$.fancybox.update = function() {
+		_update();
+	};
+
 	$.fancybox.resize = function() {
 		if (overlay.is(':visible')) {
 			overlay.css('height', $(window).height());
 		};
 
 		_scrollBarCheck();
+
+		setTimeout($.fancybox.update, 300);
 	};
 
 	$.fancybox.center = function() {
@@ -1334,7 +1391,8 @@
 		onComplete : function(){},
 		onCleanup : function(){},
 		onClosed : function(){},
-		onError : function(){}
+		onError : function(){},
+		onUpdate : function(){},
 	};
 
 
