@@ -13,18 +13,7 @@
 
 	var actionEvent;
 
-	// http://msdn.microsoft.com/ru-ru/library/ie/dn304886%28v=vs.85%29.aspx
-	if ( navigator.pointerEnabled ) {
-		actionEvent = 'pointerdown';
-	}
-	
-	// http://msdn.microsoft.com/en-US/library/ie/hh673557.aspx
-	else if ( window.navigator.msPointerEnabled ) {
-		actionEvent = 'MSPointerDown';
-	}
-
-	// https://developer.mozilla.org/en-US/docs/DOM/Touch_events
-	else if ( 'ontouchstart' in window ) {
+	if ( 'ontouchstart' in window ) {
 		actionEvent = 'touchstart';
 	}
 	else {
@@ -349,7 +338,7 @@
 			}
 		},
 
-		_process_inline = function() {
+		__process_inline = function () {
 			var
 				w = selectedOpts.width,
 				h = selectedOpts.height;
@@ -358,21 +347,24 @@
 				w = parseInt( ($(window).width() - (selectedOpts.margin * 2)) * parseFloat(w) / 100, 10) + 'px';
 
 			} else {
-				w = w == 'auto' ? 'auto' : w + 'px';	
+				w = w == 'auto' ? 'auto' : w + 'px';
 			}
 
 			if (h.toString().indexOf('%') > -1) {
 				h = parseInt( ($(window).height() - (selectedOpts.margin * 2)) * parseFloat(h) / 100, 10) + 'px';
 
 			} else {
-				h = h == 'auto' ? 'auto' : h + 'px';	
+				h = h == 'auto' ? 'auto' : h + 'px';
 			}
 
 			tmp.wrapInner('<div style="width:' + w + ';height:' + h + ';overflow: ' + (selectedOpts.scrolling == 'auto' ? 'auto' : (selectedOpts.scrolling == 'yes' ? 'scroll' : 'hidden')) + ';position:relative;"></div>');
 
 			selectedOpts.width = tmp.width();
 			selectedOpts.height = tmp.height();
+		},
 
+		_process_inline = function() {
+			__process_inline();
 			_show();
 		},
 
@@ -391,19 +383,37 @@
 
 		_update = function () {
 			if (wrap.is(':visible')) {
-				tmp.html( selectedOpts.content );
+				tmp.empty();
 
-				selectedOpts.width = tmp.width();
-				selectedOpts.height = tmp.height();
+				if (['html', 'ajax'].indexOf(selectedOpts.type) > -1) {
+					tmp.html(content.children().contents().clone());
 
-				var pos = wrap.position();
+					selectedOpts.width = 'auto';
+					selectedOpts.height = 'auto';
+
+					__process_inline();
+				}
+
+				else if (selectedOpts.type === 'inline') {
+					tmp.html($(selectedOpts.href).clone());
+
+					selectedOpts.width = tmp.width();
+					selectedOpts.height = tmp.height();
+				}
+
+				var pos = outer.position();
 
 				final_pos = _get_zoom_to();
+
+				if (!title.is(':empty')) {
+					_title_type_handler(false);
+				}
+
 				start_pos = {
 					top: pos.top,
 					left: pos.left,
-					width: wrap.width(),
-					height: wrap.height(),
+					width: outer.width(),
+					height: outer.height(),
 				};
 
 				var equal = (
@@ -430,8 +440,6 @@
 					currentOpts.onUpdate(currentArray, currentIndex, currentOpts);
 				};
 
-				$.event.trigger('fancybox-update');
-
 				if (equal) {
 					finishUpdating();
 				} else {
@@ -450,7 +458,8 @@
 			var timeout;
 
 			return function() {
-				var context = this, args = arguments;
+				var context = this;
+				var args = arguments;
 				var later = function() {
 					timeout = null;
 					if (!immediate) func.apply(context, args);
@@ -590,7 +599,7 @@
 				return;
 			};
 
-			if (currentOpts.transitionIn !== 'elastic') {
+			if (currentOpts.type !== 'iframe' && currentOpts.transitionIn !== 'elastic') {
 				final_pos.height = 'auto';
 			};
 
@@ -664,6 +673,62 @@
 			return false;
 		},
 
+		_title_type_handler = function (needInsert) {
+			needInsert = needInsert || true;
+
+			if (currentOpts.titleShow) {
+				switch (currentOpts.titlePosition) {
+					case 'inside':
+						title.css({
+							width: final_pos.width - (currentOpts.padding * 2),
+							marginLeft: currentOpts.padding,
+							marginRight: currentOpts.padding,
+						});
+
+						titleHeight = title.outerHeight(true);
+
+						if (needInsert) {
+							title.appendTo( outer );
+						}
+
+						final_pos.height += titleHeight;
+						break;
+
+					case 'over':
+						title.css({
+							marginLeft: currentOpts.padding,
+							width: final_pos.width - (currentOpts.padding * 2),
+							bottom: currentOpts.padding,
+						});
+
+						if (needInsert) {
+							title.appendTo( outer );
+						}
+						break;
+
+					case 'float':
+						title.css('left', parseInt((title.width() - final_pos.width - 40) / 2, 10) * -1);
+
+						if (needInsert) {
+							title.appendTo( wrap );
+						}
+						break;
+
+					default:
+						title.css({
+							width: final_pos.width - (currentOpts.padding * 2),
+							paddingLeft: currentOpts.padding,
+							paddingRight: currentOpts.padding,
+						});
+
+						if (needInsert) {
+							title.appendTo( wrap );
+						}
+						break;
+				}
+			}
+		}
+
 		_process_title = function() {
 			titleStr = currentOpts.title || '';
 			titleHeight = 0;
@@ -691,48 +756,7 @@
 				.appendTo( 'body' )
 				.show();
 
-			switch (currentOpts.titlePosition) {
-				case 'inside':
-					title
-						.css({
-							'width' : final_pos.width - (currentOpts.padding * 2),
-							'marginLeft' : currentOpts.padding,
-							'marginRight' : currentOpts.padding
-						});
-
-					titleHeight = title.outerHeight(true);
-
-					title.appendTo( outer );
-
-					final_pos.height += titleHeight;
-				break;
-
-				case 'over':
-					title
-						.css({
-							'marginLeft' : currentOpts.padding,
-							'width'	: final_pos.width - (currentOpts.padding * 2),
-							'bottom' : currentOpts.padding
-						})
-						.appendTo( outer );
-				break;
-
-				case 'float':
-					title
-						.css('left', parseInt((title.width() - final_pos.width - 40)/ 2, 10) * -1)
-						.appendTo( wrap );
-				break;
-
-				default:
-					title
-						.css({
-							'width' : final_pos.width - (currentOpts.padding * 2),
-							'paddingLeft' : currentOpts.padding,
-							'paddingRight' : currentOpts.padding
-						})
-						.appendTo( wrap );
-				break;
-			}
+			_title_type_handler();
 
 			title.hide();
 		},
@@ -799,10 +823,10 @@
 			}
 
 			if (actionEvent === 'click') {
-				$(window).bind("resize.fb", $.fancybox.resize);
+				$(window).on("resize.fb", _debounce($.fancybox.resize, 500));
 			}
 			else {
-				$(window).bind("orientationchange.fb", $.fancybox.resize);
+				$(window).on("orientationchange.fb", _debounce($.fancybox.resize, 500));
 			};
 
 			if (currentOpts.type == 'iframe') {
@@ -1249,15 +1273,15 @@
 		_update();
 	};
 
-	$.fancybox.resize = _debounce(function() {
+	$.fancybox.resize = function() {
 		if (overlay.is(':visible')) {
 			overlay.css('height', $(window).height());
-		};
+		}
 
 		_fitWindowHeight();
 		$.fancybox.update();
 		_scrollBarCheck();
-	}, 500);
+	};
 
 	$.fancybox.center = function() {
 		// центрирование с версии 1.5.0 производится стилями
