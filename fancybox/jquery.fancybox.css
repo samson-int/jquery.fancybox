@@ -114,12 +114,12 @@
 	cursor: pointer;
 	z-index: 1103;
 	display: none;
-	font: normal 27px/30px arial, helvetica, sans-serif;
+	font: normal 27px/30px Arial, Helvetica, sans-serif;
 	text-align: center;
 }
 #fancybox-error {
 	color: #444;
-	font: normal 12px/20px Arial;
+	font: normal 12px/20px Arial, Helvetica, sans-serif;
 	padding: 14px;
 	margin: 0;
 }
@@ -187,7 +187,7 @@
 	right: 20px;
 }
 #fancybox-title {
-	font-family: Helvetica;
+	font-family: Arial, Helvetica, sans-serif;
 	font-size: 12px;
 	z-index: 1102;
 }
