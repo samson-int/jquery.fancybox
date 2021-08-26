@@ -19,8 +19,10 @@
 		background-color: rgb(255,250,242);
 		font-size: 18px;
 		padding: 20px;
-		width: 600px;
+		max-width: 600px;
+		width: 100%;
 		line-height: 1.5;
+		box-sizing: border-box;
 	}
 	.fancy h1 {
 		margin-top: 0;
@@ -102,6 +104,11 @@
 				'transitionOut'		: 'none'
 			});
 
+			$(".iframe").fancybox({
+				'transitionIn': 'none',
+				'transitionOut': 'none',
+			});
+
 			$(document).on('click', '.forw', function (e) {
 				e.preventDefault();
 
@@ -173,7 +180,9 @@
 	<ul>
 		<li><a id="various1" href="#tmpl1">Inline</a></li>
 		<li><a id="various2" href="ajax.txt">Ajax</a></li>
-		<li><a id="various3" href="http://google.ca">Iframe</a></li>
+		<li><a id="various3" href="https://jqueryui.com">Iframe</a></li>
+		<li><a class="iframe" href="https://www.youtube.com/embed/h6t5eDe5gUE">Youtube (iframe)</a></li>
+		<li><a class="various iframe" href="https://maps.google.com/?output=embed&amp;f=q&amp;source=s_q&amp;hl=en&amp;geocode=&amp;q=London+Eye,+County+Hall,+Westminster+Bridge+Road,+London,+United+Kingdom&amp;hl=lv&amp;ll=51.504155,-0.117749&amp;spn=0.00571,0.016512&amp;sll=56.879635,24.603189&amp;sspn=10.280244,33.815918&amp;vpsrc=6&amp;hq=London+Eye&amp;radius=15000&amp;t=h&amp;z=17">Google maps (iframe)</a></li>
 		<li><a id="various4" href="http://www.adobe.com/jp/events/cs3_web_edition_tour/swfs/perform.swf">Swf</a></li>
 	</ul>
 
