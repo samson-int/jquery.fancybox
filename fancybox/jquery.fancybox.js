@@ -28,6 +28,8 @@
 
 		loadingTimer, loadingFrame = 1,
 
+		initalWidth, initalHeight, initalAutoDimensions = false,
+
 		titleHeight = 0, titleStr = '', start_pos, final_pos, busy = false, fx = $.extend($('<div/>')[0], { prop: 0 }),
 
 		/*
@@ -100,6 +102,10 @@
 			}
 
 			$(':root')[0].style.setProperty('--modal-max-height', window.innerHeight + 'px');
+		},
+
+		_isReadyType = function (type) {
+			return ['html', 'inline', 'ajax'].indexOf(type) > -1;
 		},
 
 		_start = function() {
@@ -204,13 +210,21 @@
 			selectedOpts.title = title;
 
 			if (selectedOpts.autoDimensions) {
-				if (selectedOpts.type == 'html' || selectedOpts.type == 'inline' || selectedOpts.type == 'ajax') {
+				initalAutoDimensions = true;
+
+				if (_isReadyType(selectedOpts.type)) {
 					selectedOpts.width = 'auto';
 					selectedOpts.height = 'auto';
 				} else {
-					selectedOpts.autoDimensions = false;	
+					selectedOpts.autoDimensions = false;
 				}
 			}
+
+			// Сохраняем начальные размеры для обновления при ресайзе,
+			// т.к. размеры заменяются в ходе выполнения скрипта.
+			// Это нужно для отключенного `autoDimensions`
+			initalWidth = selectedOpts.width;
+			initalHeight = selectedOpts.height;
 
 			if (selectedOpts.modal) {
 				selectedOpts.overlayShow = true;
@@ -385,20 +399,24 @@
 			if (wrap.is(':visible')) {
 				tmp.empty();
 
+				if (initalAutoDimensions) {
+					if (_isReadyType(selectedOpts.type)) {
+						selectedOpts.width = 'auto';
+						selectedOpts.height = 'auto';
+					}
+				} else if (selectedOpts.type !== 'image') {
+					selectedOpts.width = initalWidth;
+					selectedOpts.height = initalHeight;
+				}
+
 				if (['html', 'ajax'].indexOf(selectedOpts.type) > -1) {
 					tmp.html(content.children().contents().clone());
-
-					selectedOpts.width = 'auto';
-					selectedOpts.height = 'auto';
-
 					__process_inline();
 				}
 
 				else if (selectedOpts.type === 'inline') {
 					tmp.html($(selectedOpts.href).clone());
-
-					selectedOpts.width = tmp.width();
-					selectedOpts.height = tmp.height();
+					__process_inline();
 				}
 
 				var pos = outer.position();
@@ -920,7 +938,7 @@
 				to.height = currentOpts.height + double_padding;
 			}
 
-			if (['html', 'inline', 'ajax'].indexOf(currentOpts.type) < 0 && resize && (to.width > view[0] || to.height > view[1])) {
+			if (!_isReadyType(currentOpts.type) && resize && (to.width > view[0] || to.height > view[1])) {
 				if (selectedOpts.type == 'image' || selectedOpts.type == 'swf') {
 					ratio = (currentOpts.width ) / (currentOpts.height );
 
