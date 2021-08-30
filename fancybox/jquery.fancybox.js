@@ -210,12 +210,12 @@
 			selectedOpts.title = title;
 
 			if (selectedOpts.autoDimensions) {
-				initalAutoDimensions = true;
-
 				if (_isReadyType(selectedOpts.type)) {
+					initalAutoDimensions = true;
 					selectedOpts.width = 'auto';
 					selectedOpts.height = 'auto';
 				} else {
+					initalAutoDimensions = false;
 					selectedOpts.autoDimensions = false;
 				}
 			}
@@ -409,14 +409,16 @@
 					selectedOpts.height = initalHeight;
 				}
 
-				if (['html', 'ajax'].indexOf(selectedOpts.type) > -1) {
+				if (_isReadyType(selectedOpts.type)) {
 					tmp.html(content.children().contents().clone());
 					__process_inline();
-				}
 
-				else if (selectedOpts.type === 'inline') {
-					tmp.html($(selectedOpts.href).clone());
-					__process_inline();
+					if (!initalAutoDimensions) {
+						content.children().css({
+							width: selectedOpts.width,
+							height: selectedOpts.height,
+						});
+					}
 				}
 
 				var pos = outer.position();
@@ -440,7 +442,7 @@
 				);
 
 				var finishUpdating = function() {
-					if (selectedOpts.autoDimensions) {
+					if (initalAutoDimensions) {
 						content.css('height', 'auto');
 					}
 
