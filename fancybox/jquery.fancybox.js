@@ -1383,6 +1383,9 @@
 		SCROLLBAR_WIDTH = obj.offsetWidth - obj.clientWidth;
 		obj.parentNode.removeChild(obj);
 
+		// Добавление css-переменной с шириной скроллбара
+		$(':root')[0].style.setProperty('--modal-scrollbar-width', SCROLLBAR_WIDTH + 'px');
+
 		// добавление стиля в шапку
 		// http://stackoverflow.com/questions/524696/how-to-create-a-style-tag-with-javascript#answer-524721
 		var css = '.fancybox__shift{margin-right: '+ SCROLLBAR_WIDTH +'px !important;}';
