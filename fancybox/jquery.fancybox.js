@@ -2,7 +2,7 @@
  * Copyright (c) 2008 - 2010 Janis Skarnelis
  * Updated by Sergei Vasilev (https://github.com/Ser-Gen)
  *
- * Version: 1.6.2
+ * Version: 1.6.4
  *
  * Dual licensed under the MIT and GPL licenses:
  *	 http://www.opensource.org/licenses/mit-license.php
@@ -36,12 +36,21 @@
 		 * Private methods 
 		 */
 
+		_removeScrollbarWidthProp = function () {
+			document.documentElement.style.removeProperty('--fancybox-scrollbar-width' );
+		},
+
 		_scrollBarCheck = function() {
 			if ($('html').hasScrollBarY() || $('html').css('overflow') === 'scroll' || $('html').css('overflow-y') === 'scroll') {
 				$('html').addClass('fancybox__shift');
+
+				if (SCROLLBAR_WIDTH) {
+					document.documentElement.style.setProperty('--fancybox-scrollbar-width', SCROLLBAR_WIDTH + 'px');
+				}
 			}
 			else {
 				$('html').removeClass('fancybox__shift');
+				_removeScrollbarWidthProp();
 			};
 
 			if (actionEvent === 'touchstart') {
@@ -101,7 +110,7 @@
 				return;
 			}
 
-			$(':root')[0].style.setProperty('--modal-max-height', window.innerHeight + 'px');
+			document.documentElement.style.setProperty('--fancybox-max-height', window.innerHeight + 'px');
 		},
 
 		_isReadyType = function (type) {
@@ -1233,6 +1242,7 @@
 			currentOpts.onClosed(currentArray, currentIndex, currentOpts);
 
 			$('html').removeClass('fancybox__shift fancybox__lock fancybox__touch');
+			_removeScrollbarWidthProp();
 
 			if (actionEvent === 'touchstart') {
 				$('body').css({

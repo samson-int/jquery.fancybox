@@ -27,6 +27,14 @@
 	.fancy h1 {
 		margin-top: 0;
 	}
+	.floatElement {
+		position: fixed;
+		top: 0;
+		right: var(--fancybox-scrollbar-width, 0);
+		width: 10px;
+		height: 10px;
+		background-color: green;
+	}
 	</style>
 
 	<script>
@@ -256,6 +264,8 @@
 	<a href="#" class="back">Back!</a>
   </div>
 </div>
+
+<div class="floatElement"></div>
 
 </body>
 </html>
