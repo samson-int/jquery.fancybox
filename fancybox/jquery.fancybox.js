@@ -2,7 +2,7 @@
  * Copyright (c) 2008 - 2010 Janis Skarnelis
  * Updated by Sergei Vasilev (https://github.com/Ser-Gen)
  *
- * Version: 1.6.2
+ * Version: 1.6.4
  *
  * Dual licensed under the MIT and GPL licenses:
  *	 http://www.opensource.org/licenses/mit-license.php
@@ -1322,12 +1322,13 @@
 
 		outer.append(
 			content = $('<div id="fancybox-content"></div>'),
-			close = $('<a id="fancybox-close"></a>'),
 			title = $('<div id="fancybox-title"></div>'),
 
 			nav_left = $('<a href="javascript:;" id="fancybox-left"><span class="fancy-ico" id="fancybox-left-ico"></span></a>'),
 			nav_right = $('<a href="javascript:;" id="fancybox-right"><span class="fancy-ico" id="fancybox-right-ico"></span></a>')
 		);
+
+		close = $('<a id="fancybox-close"></a>').insertBefore(outer);
 
 		$('body').append(
 			tmp	= $('<div id="fancybox-tmp"></div>'),
