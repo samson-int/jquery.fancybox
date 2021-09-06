@@ -105,18 +105,40 @@
 	z-index: 1101;
 }
 #fancybox-close {
-	position: absolute;
-	top: -15px;
-	right: -15px;
+	position: relative;
+	margin-top: -15px;
+	margin-right: -15px;
+	margin-bottom: -15px;
 	width: 30px;
 	height: 30px;
+	float: right;
 	background: transparent url('img/fancybox-1.4.5.png') -45px 0px no-repeat;
 	cursor: pointer;
 	z-index: 1103;
 	display: none;
-	font: normal 27px/30px Arial, Helvetica, sans-serif;
-	text-align: center;
 }
+
+@supports (position: sticky) {
+	#fancybox-close {
+		position: sticky;
+		top: 0;
+		margin: 0;
+		width: 0;
+		height: 0;
+		background: none;
+	}
+
+	#fancybox-close:before {
+		content: '';
+		position: absolute;
+		top: -15px;
+		right: -15px;
+		width: 30px;
+		height: 30px;
+		background: transparent url('img/fancybox-1.4.5.png') -45px 0 no-repeat;
+	}
+}
+
 #fancybox-error {
 	color: #444;
 	font: normal 12px/20px Arial, Helvetica, sans-serif;
