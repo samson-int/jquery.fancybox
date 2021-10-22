@@ -91,7 +91,20 @@
 			*/
 
 			$("#various1").fancybox({
-				padding: 0
+				padding: 0,
+				margin: 0
+			});
+
+			$("#various11").fancybox({
+				padding: 0,
+				maxWidth: 500,
+				maxHeight: 700,
+				onComplete: function () {
+					$('#fancybox-content')
+						.find('.forw')
+						.addClass('forw2')
+						.removeClass('forw');
+				},
 			});
 
 			$("#various2").fancybox();
@@ -135,6 +148,16 @@
 
 				$.fancybox({
 					content: $('#tmpl2').html(),
+					padding: 0
+				});
+			});
+
+			$(document).on('click', '.forw2', function (e) {
+				e.preventDefault();
+
+				$.fancybox({
+					content: $('#tmpl2').html(),
+					maxHeight: 700,
 					padding: 0
 				});
 			});
@@ -200,6 +223,7 @@
 
 	<ul>
 		<li><a id="various1" href="#tmpl1">Inline</a></li>
+		<li><a id="various11" href="#tmpl1">Inline (maxWidth, maxHeight)</a></li>
 		<li><a id="various5" href="#inline2">Inline (custom size)</a></li>
 		<li><a id="various2" href="ajax.txt">Ajax</a></li>
 		<li><a id="various3" href="https://jqueryui.com">Iframe</a></li>

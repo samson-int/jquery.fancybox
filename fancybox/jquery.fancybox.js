@@ -404,6 +404,8 @@
 			var origWidth = _isPercentage(w) ? viewport[0] * _getScalar(w) / 100 : w;
 			var origHeight = _isPercentage(h) ? viewport[1] * _getScalar(h) / 100 : h;
 
+			tmp.width('auto').height('auto');
+
 			if (selectedOpts.autoDimensions) {
 				origWidth = tmp.width();
 				origHeight = tmp.height();
@@ -418,9 +420,18 @@
 			minHeight = _getScalar(_isPercentage(minHeight) ? _getScalar(minHeight, 'h') : minHeight);
 			maxHeight = _getScalar(_isPercentage(maxHeight) ? _getScalar(maxHeight, 'h') : maxHeight);
 
+			width = Math.max(minWidth, Math.min(width, maxWidth));
+
+			if (selectedOpts.autoDimensions && selectedOpts.type !== 'iframe') {
+				tmp.width(width);
+				height = tmp.height();
+			}
+
+			height = Math.max(minHeight, Math.min(height, maxHeight));
+
 			return {
-				width: Math.max(minWidth, Math.min(width, maxWidth)),
-				height: Math.max(minHeight, Math.min(height, maxHeight)),
+				width: width,
+				height: height,
 			}
 		},
 
@@ -431,13 +442,26 @@
 				selectedOpts.width = dim.width;
 				selectedOpts.height = dim.height;
 			} else {
+				var height = dim.height;
+
+				if (
+					selectedOpts.autoDimensions
+					&& (
+						dim.height > selectedOpts.minHeight
+						&& dim.height < selectedOpts.maxHeight
+					)
+				) {
+					height = 'auto';
+				}
+
 				tmp.wrapInner(
 					$('<div />').css({
 						position: 'relative',
 						width: dim.width + 'px',
-						height: ( selectedOpts.autoDimensions ? 'auto' : dim.height + 'px' ),
+						minHeight: selectedOpts.minHeight,
+						maxHeight: selectedOpts.maxHeight,
 						overflow: (selectedOpts.scrolling === 'auto' ? 'auto' : (selectedOpts.scrolling === 'yes' ? 'scroll' : 'hidden')),
-					})
+					}).height(height)
 				);
 
 				selectedOpts.width = tmp.width();
@@ -497,10 +521,6 @@
 				);
 
 				var finishUpdating = function() {
-					if (selectedOpts.autoDimensions && _isReadyType(selectedOpts.type)) {
-						content.css('height', 'auto');
-					}
-
 					wrap.css({
 						'height': 'auto',
 						'position': 'static'
@@ -721,6 +741,8 @@
 					'height' : selectedOpts.autoDimensions ? 'auto' : final_pos.height - titleHeight - currentOpts.padding * 2
 				})
 				.html( tmp.contents() );
+
+			wrap.css('margin', currentOpts.margin);
 
 			cbOnBeforeShow();
 
@@ -968,10 +990,11 @@
 
 			if (_isReadyType(selectedOpts.type)) {
 				if (selectedOpts.autoDimensions) {
-					content.children().css({
-						width: 'auto',
-						height: 'auto',
-					});
+					content.children().width('auto');
+
+					if (css.height > selectedOpts.minHeight && css.height < selectedOpts.maxHeight) {
+						content.children().height('auto');
+					}
 				} else {
 					content.children().css(css);
 				}
