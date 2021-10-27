@@ -988,19 +988,19 @@
 				height: dim.height - (titleHeight * pos) - currentOpts.padding * 2,
 			};
 
+			content.css(css);
+
 			if (_isReadyType(selectedOpts.type)) {
 				if (selectedOpts.autoDimensions) {
 					content.children().width('auto');
 
 					if (css.height > selectedOpts.minHeight && css.height < selectedOpts.maxHeight) {
-						content.children().height('auto');
+						content.children().add(content).height('auto');
 					}
 				} else {
 					content.children().css(css);
 				}
 			}
-
-			content.css(css);
 		},
 
 		_get_zoom_to = function () {
