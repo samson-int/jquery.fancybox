@@ -498,6 +498,7 @@
 				else if (_isReadyType(selectedOpts.type)) {
 					tmp.html(content.children().contents().clone());
 					__process_inline();
+					tmp.empty();
 				}
 
 				var pos = outer.position();
