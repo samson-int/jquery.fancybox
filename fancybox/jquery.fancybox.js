@@ -487,6 +487,14 @@
 			_show();
 		},
 
+		__cleanUpTmp = function (tmp) {
+			tmp.find('[name]').each(function () {
+				$(this).attr('name', '');
+			});
+
+			return tmp;
+		},
+
 		_update = function () {
 			if (wrap.is(':visible')) {
 				tmp.empty();
@@ -496,7 +504,7 @@
 				}
 
 				else if (_isReadyType(selectedOpts.type)) {
-					tmp.html(content.children().contents().clone());
+					tmp.html(__cleanUpTmp(content.children().contents().clone()));
 					__process_inline();
 					tmp.empty();
 				}
