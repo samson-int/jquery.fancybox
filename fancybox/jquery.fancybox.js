@@ -509,8 +509,6 @@
 					tmp.empty();
 				}
 
-				var pos = outer.position();
-
 				final_pos = _get_zoom_to();
 
 				if (!title.is(':empty')) {
@@ -518,8 +516,6 @@
 				}
 
 				start_pos = {
-					top: pos.top,
-					left: pos.left,
 					width: outer.width(),
 					height: outer.height(),
 				};
@@ -532,7 +528,7 @@
 				var finishUpdating = function() {
 					wrap.css({
 						'height': 'auto',
-						'position': 'static'
+						'position': 'relative'
 					});
 
 					$.event.trigger('fancybox-onUpdate', [
@@ -657,11 +653,14 @@
 				pos = wrap.position();
 
 				start_pos = {
-					top	 : pos.top,
-					left : pos.left,
 					width : wrap.width(),
 					height : wrap.height()
 				};
+
+				if (currentOpts.transitionIn === 'elastic') {
+					start_pos.top = pos.top;
+					start_pos.left = pos.left;
+				}
 
 				equal = (start_pos.width == final_pos.width && start_pos.height == final_pos.height);
 
@@ -903,7 +902,9 @@
 
 			wrap.css({
 				'height': 'auto',
-				'position': 'static'
+				'top': '',
+				'left': '',
+				'position': 'relative'
 			});
 
 			if (titleStr && titleStr.length) {
@@ -981,10 +982,12 @@
 			var dim = {
 				width : parseInt(start_pos.width + (final_pos.width - start_pos.width) * pos, 10),
 				height : parseInt(start_pos.height + (final_pos.height - start_pos.height) * pos, 10),
-
-				top : parseInt(start_pos.top + (final_pos.top - start_pos.top) * pos, 10),
-				left : parseInt(start_pos.left + (final_pos.left - start_pos.left) * pos, 10)
 			};
+
+			if (currentOpts.transitionIn === 'elastic' || currentOpts.transitionOut === 'elastic') {
+				dim.top = parseInt(start_pos.top + (final_pos.top - start_pos.top) * pos, 10);
+				dim.left = parseInt(start_pos.left + (final_pos.left - start_pos.left) * pos, 10);
+			}
 
 			if (typeof final_pos.opacity !== 'undefined') {
 				dim.opacity = pos < 0.5 ? 0.5 : pos;
@@ -1051,18 +1054,19 @@
 				}
 			}
 
-			if (isTouch) {
-				to.top = 0;
+			if (selectedOpts.transitionIn === 'elastic') {
+				if (isTouch) {
+					to.top = 0;
+				} else {
+					to.top = parseInt(Math.max(view[3], view[3] + ((view[1] - to.height) * 0.5)), 10) - $(window).scrollTop();
+				}
+
+				to.left = parseInt(Math.max(view[2], view[2] + ((view[0] - to.width) * 0.5)), 10);
+
+				if ($('html').hasClass('fancybox__shift')) {
+					to.left -= SCROLLBAR_WIDTH / 2;
+				}
 			}
-			else {
-				to.top = parseInt(Math.max(view[3], view[3] + ((view[1] - to.height) * 0.5)), 10) - $(window).scrollTop();
-			};
-
-			to.left = parseInt(Math.max(view[2], view[2] + ((view[0] - to.width) * 0.5)), 10);
-
-			if ($('html').hasClass('fancybox__shift')) {
-				to.left -= SCROLLBAR_WIDTH  / 2;
-			};
 
 			return to;
 		},
